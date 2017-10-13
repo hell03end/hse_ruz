@@ -1,5 +1,6 @@
 # hse_ruz
 [![Build Status](https://travis-ci.org/hell03end/hse_ruz.svg?branch=master)](https://travis-ci.org/hell03end/hse_ruz)
+[![PyPI version](https://badge.fury.io/py/hse_ruz.svg)](https://badge.fury.io/py/hse_ruz)
 
 Python wrapper for HSE RUZ API
 
