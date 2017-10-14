@@ -1,4 +1,5 @@
 import json
+from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
@@ -91,6 +92,7 @@ class RUZ(object):
         return self.get("schedule", fromDate=from_date, toDate=to_date,
                         email=email, data=params)
 
+    @lru_cache(maxsize=16)
     def groups(self, **params) -> dict:
         '''
             Return list of groups.
@@ -100,6 +102,7 @@ class RUZ(object):
         '''
         return self.get("groups", data=params)
 
+    @lru_cache(maxsize=16)
     def staff_of_group(self, group_id: int, **params) -> dict:
         '''
             Return list of students in group.
@@ -109,6 +112,7 @@ class RUZ(object):
         '''
         return self.get("staffOfGroup", groupOid=group_id, data=params)
 
+    @lru_cache(maxsize=16)
     def streams(self, **params) -> dict:
         '''
             Return list of study streams.
@@ -117,7 +121,8 @@ class RUZ(object):
         '''
         return self.get("streams", data=params)
 
-    def staffOfStreams(self, stream_id: int, **params) -> dict:
+    @lru_cache(maxsize=16)
+    def staff_of_streams(self, stream_id: int, **params) -> dict:
         '''
             Return list of the groups on study stream.
 
@@ -125,6 +130,7 @@ class RUZ(object):
         '''
         return self.get("staffOfStreams", streamOid=stream_id, data=params)
 
+    @lru_cache(maxsize=16)
     def lecturers(self, **params) -> dict:
         '''
             Return list of teachers.
@@ -134,6 +140,7 @@ class RUZ(object):
         '''
         return self.get("lecturers", data=params)
 
+    @lru_cache(maxsize=16)
     def auditoriums(self, **params) -> dict:
         '''
             Return list of auditoriums.
@@ -143,14 +150,17 @@ class RUZ(object):
         '''
         return self.get("auditoriums", data=params)
 
-    def typeOfAuditoriums(self) -> dict:
+    @lru_cache(maxsize=1)
+    def type_of_auditoriums(self) -> dict:
         ''' Return list of auditoriums' types. '''
         return self.get("typeOfAuditoriums")
 
-    def kindOfWorks(self) -> dict:
+    @lru_cache(maxsize=1)
+    def kind_of_works(self) -> dict:
         ''' Return list of classes' types. '''
         return self.get("kindOfWorks")
 
+    @lru_cache(maxsize=16)
     def buildings(self, **params) -> dict:
         '''
             Return list of buildings.
@@ -159,6 +169,7 @@ class RUZ(object):
         '''
         return self.get("buildings", data=params)
 
+    @lru_cache(maxsize=16)
     def faculties(self, **params) -> dict:
         '''
             Return list of learning programs (faculties).
@@ -167,6 +178,7 @@ class RUZ(object):
         '''
         return self.get("faculties", data=params)
 
+    @lru_cache(maxsize=16)
     def chairs(self, **params) -> dict:
         '''
             Return list of departments.
@@ -176,7 +188,8 @@ class RUZ(object):
         '''
         return self.get("chairs", data=params)
 
-    def subGroups(self, **params) -> dict:
+    @lru_cache(maxsize=16)
+    def sub_groups(self, **params) -> dict:
         '''
             Return list of subgroups.
 
