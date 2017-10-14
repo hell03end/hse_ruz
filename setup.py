@@ -15,7 +15,7 @@ setup(
     version="0.1.0",
     description="Python wrapper for HSE RUZ API",
     long_description=open(os.path.join(os.path.dirname(__file__),
-                                       "README.md")).read(),
+                                       "README.rst")).read(),
     author="hell03end",
     author_email="hell03end@outlook.com",
     url="https://github.com/hell03end/hse_ruz",
