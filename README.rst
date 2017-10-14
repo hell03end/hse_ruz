@@ -19,6 +19,7 @@ Installation
 ------------
 
 .. code-block:: bash
+
     pip install hse_ruz
 
 
@@ -28,6 +29,7 @@ Usage
 Note: add ruz api url throw `API_RUZ_URL` environment variable.
 
 .. code-block:: python
+
     from ruz import RUZ
     api = RUZ()
     assert api.v == 2
