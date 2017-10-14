@@ -24,5 +24,4 @@ Python wrapper for HSE RUZ API
 ```
 
 ### ToDo
-* [ ] add separate method for each endpoint
 * [ ] update tests
