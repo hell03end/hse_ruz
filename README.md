@@ -22,6 +22,3 @@ Python wrapper for HSE RUZ API
     assert api.v == 2
     assert api.get("buildings")
 ```
-
-### ToDo
-* [ ] update tests
