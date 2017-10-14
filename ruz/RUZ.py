@@ -1,4 +1,6 @@
 import json
+from datetime import datetime as dt
+from datetime import timedelta as td
 from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
@@ -51,7 +53,7 @@ class RUZ(object):
         url = self._url if v == 1 else self._url2
         if data:
             return "{}{}?{}".format(url, self._endpoints[endpoint],
-                                    parse.urlencode(data).encode('utf-8'))
+                                    parse.urlencode(data))
         return "{}{}".format(url, self._endpoints[endpoint])
 
     def _request(self, endpoint: str, data: dict=None) -> HTTPResponse:
@@ -71,7 +73,9 @@ class RUZ(object):
             self._logger.error(excinfo)
             return {}
 
-    def schedule(self, from_date: str, to_date: str, email: str=None,
+    def schedule(self, email: str=None,
+                 from_date: str=str(dt.now()).replace('-', '.')[:10],
+                 to_date: str=str(dt.now() + td(days=6)).replace('-', '.')[:10],
                  **params) -> dict:
         '''
             Return classes schedule.
@@ -90,7 +94,7 @@ class RUZ(object):
                 studentOid, email.
         '''
         return self.get("schedule", fromDate=from_date, toDate=to_date,
-                        email=email, data=params)
+                        email=email, **params)
 
     @lru_cache(maxsize=16)
     def groups(self, **params) -> dict:
@@ -100,7 +104,7 @@ class RUZ(object):
             :param facultyOid: int. Course ID.
             :param findText: str. Text to find.
         '''
-        return self.get("groups", data=params)
+        return self.get("groups", **params)
 
     @lru_cache(maxsize=16)
     def staff_of_group(self, group_id: int, **params) -> dict:
@@ -110,7 +114,7 @@ class RUZ(object):
             :param group_id: int, required. Group' ID.
             :param findText: str. Text to find.
         '''
-        return self.get("staffOfGroup", groupOid=group_id, data=params)
+        return self.get("staffOfGroup", groupOid=group_id, **params)
 
     @lru_cache(maxsize=16)
     def streams(self, **params) -> dict:
@@ -119,7 +123,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("streams", data=params)
+        return self.get("streams", **params)
 
     @lru_cache(maxsize=16)
     def staff_of_streams(self, stream_id: int, **params) -> dict:
@@ -128,7 +132,7 @@ class RUZ(object):
 
             :param stream_id: int, required. Group' ID.
         '''
-        return self.get("staffOfStreams", streamOid=stream_id, data=params)
+        return self.get("staffOfStreams", streamOid=stream_id, **params)
 
     @lru_cache(maxsize=16)
     def lecturers(self, **params) -> dict:
@@ -138,7 +142,7 @@ class RUZ(object):
             :param chairOid: int. ID of department.
             :param findText: str. Text to find.
         '''
-        return self.get("lecturers", data=params)
+        return self.get("lecturers", **params)
 
     @lru_cache(maxsize=16)
     def auditoriums(self, **params) -> dict:
@@ -148,7 +152,7 @@ class RUZ(object):
             :param buildingOid: int. ID of building.
             :param findText: str. Text to find.
         '''
-        return self.get("auditoriums", data=params)
+        return self.get("auditoriums", **params)
 
     @lru_cache(maxsize=1)
     def type_of_auditoriums(self) -> dict:
@@ -167,7 +171,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("buildings", data=params)
+        return self.get("buildings", **params)
 
     @lru_cache(maxsize=16)
     def faculties(self, **params) -> dict:
@@ -176,7 +180,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("faculties", data=params)
+        return self.get("faculties", **params)
 
     @lru_cache(maxsize=16)
     def chairs(self, **params) -> dict:
@@ -186,7 +190,7 @@ class RUZ(object):
             :param facultyOid: int. ID of course (learning program).
             :param findText: str. Text to find.
         '''
-        return self.get("chairs", data=params)
+        return self.get("chairs", **params)
 
     @lru_cache(maxsize=16)
     def sub_groups(self, **params) -> dict:
@@ -195,7 +199,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("subGroups", data=params)
+        return self.get("subGroups", **params)
 
 
 if __name__ == "__main__":
