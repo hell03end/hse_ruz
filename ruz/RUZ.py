@@ -17,7 +17,7 @@ class RUZ(object):
         All methods are transformed from CamelCase to _ notation.
     '''
 
-    def __init__(self, strict_v1: bool=False, **kwargs):
+    def __init__(self, strict_v1: bool=True, **kwargs):
         '''
             >>> RUZ(base_url=None)
             Traceback (most recent call last):
@@ -71,10 +71,11 @@ class RUZ(object):
 
     def _request(self, endpoint: str, data: dict=None) -> HTTPResponse:
         ''' Implements request to API with given params '''
-        try:
-            return request.urlopen(self._make_url(endpoint, data, v=2))
-        except error.HTTPError as excinfo:
-            self._logger.warning("v2 API unavailable: %s", excinfo)
+        if self.v == 2:
+            try:
+                return request.urlopen(self._make_url(endpoint, data, v=2))
+            except error.HTTPError as excinfo:
+                self._logger.warning("v2 API unavailable: %s", excinfo)
         return request.urlopen(self._make_url(endpoint, data))
 
     def _verify_schema(self, endpoint: str, **params) -> None:
