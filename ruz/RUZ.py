@@ -1,4 +1,5 @@
 import json
+import re
 from collections import Iterable
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -55,6 +56,11 @@ class RUZ(object):
         '''
         return 2 if self._url2[-2] == "2" else 1
 
+    @property
+    def email_domains(self) -> tuple:
+        ''' Allowed email domains '''
+        return ("hse.ru", "edu.hse.ru")
+
     def _make_url(self, endpoint: str, data: dict=None, v: int=1) -> str:
         ''' Creates full url for API requests '''
         url = self._url if v == 1 else self._url2
@@ -71,7 +77,7 @@ class RUZ(object):
             self._logger.warning("v2 API unavailable: %s", excinfo)
         return request.urlopen(self._make_url(endpoint, data))
 
-    def _verify(self, endpoint: str, **params) -> None:
+    def _verify_schema(self, endpoint: str, **params) -> None:
         ''' Check params fit schema for certain endpoint '''
         schema = self._schema.get(endpoint)
         if not schema:
@@ -86,26 +92,33 @@ class RUZ(object):
                     schema[key], key, type(value)
                 ))
 
+    def _verify_email(self, email: str, receiver_type: int=3):
+        ''' Check email is valid for HSE '''
+        pattern = r"\b[a-zA-Z0-9\._-]{2,}@([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}\.ru\b"
+        if not re.match(pattern, email):
+            raise ValueError("Wrong email address: {}".format(email))
+
+        domain = email.split('@')[-1]
+        if domain not in self.email_domains:
+            raise ValueError("Wrong email domain: {}".format(domain))
+
+        if receiver_type == 1:
+            if domain != "hse.ru":
+                self._logger.warning("Wrong domain for teacher: %s", domain)
+        elif receiver_type == 2:
+            raise ValueError("No email needed for receiverType: 2")
+        elif receiver_type == 3:
+            if domain != "edu.hse.ru":
+                self._logger.warning("Wrong domain for student: %s", domain)
+        else:
+            raise ValueError("Wrong receiverType: {}".format(receiver_type))
+
     def get(self, endpoint: str, **params) -> dict:
         ''' Return requested data in JSON '''
         email = params.get('email')
         if email:
-            if email[-7:] != "@hse.ru" and email[-11:] != "@edu.hse.ru":
-                raise ValueError("Wrong email domain: {}".format(email))
-            receiver = params.get('receiverType', 3)
-            if receiver == 1:
-                if email[-7:] != "@hse.ru":
-                    self._logger.warning("Wrong email domain for teacher: %s",
-                                         email)
-            elif receiver == 2:
-                raise ValueError("No email needed for receiverType = 2")
-            elif receiver == 3:
-                if email[-11:] != "@edu.hse.ru":
-                    self._logger.warning("Wrong email domain for student: %s",
-                                         email)
-            else:
-                raise ValueError("Wrong receiverType: {}".format(receiver))
-        self._verify(endpoint, **params)
+            self._verify_email(email, params.get('receiverType', 3))
+        self._verify_schema(endpoint, **params)
         try:
             response = self._request(endpoint, data=params)
             return json.loads(response.read().decode('utf-8'))
@@ -140,6 +153,10 @@ class RUZ(object):
 
     def schedules(self, emails: Iterable, **params) -> map:
         ''' Classes schedule for multiply students '''
+        if isinstance(emails, str):
+            emails = [emails]
+        elif not isinstance(emails, (set, list, tuple)):
+            raise ValueError("Expect Iterable, got: {}".format(type(emails)))
         return map(lambda email, params=params: self.schedule(email, **params),
                    emails)
 
