@@ -139,7 +139,14 @@ RESPONSE_SCHEMA = {
             'yearOfEducation': int
         }
     ],
-    'staffOfStreams': {},
+    'staffOfStreams': [
+        {
+            "GroupNumber": str,
+            "GroupOid": int,
+            "SubgroupName": str,
+            "SubgroupOid": int
+        }
+    ],
     'lecturers': [
         {
             'chair': str,
