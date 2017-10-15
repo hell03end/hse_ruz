@@ -18,6 +18,14 @@ def save_dump(path: str, obj: object, rewrite: bool=False) -> bool:
     return False
 
 
+def recreate_dump(force: bool=False) -> None:
+    from .raw_schema import REQUEST_SCHEMA, RESPONSE_SCHEMA, RUZ_API_ENDPOINTS
+
+    save_dump(REQ_DUMP_PATH, REQUEST_SCHEMA, rewrite=force)
+    save_dump(RESP_DUMP_PATH, RESPONSE_SCHEMA, rewrite=force)
+    save_dump(ENDPOINTS_DUMP_PATH, RUZ_API_ENDPOINTS, rewrite=force)
+
+
 DUMPS_PATH = os.path.join(os.path.dirname(__file__), "dumps")
 REQ_DUMP_PATH = os.path.join(DUMPS_PATH, "REQUEST_SCHEMA.dump")
 RESP_DUMP_PATH = os.path.join(DUMPS_PATH, "RESPONSE_SCHEMA.dump")
@@ -38,8 +46,4 @@ __all__ = ("REQUEST_SCHEMA", "RESPONSE_SCHEMA", "RUZ_API_ENDPOINTS")
 
 
 if __name__ == "__main__":
-    from .raw_schema import REQUEST_SCHEMA, RESPONSE_SCHEMA, RUZ_API_ENDPOINTS
-
-    save_dump(REQ_DUMP_PATH, REQUEST_SCHEMA, rewrite=False)
-    save_dump(RESP_DUMP_PATH, RESPONSE_SCHEMA, rewrite=False)
-    save_dump(ENDPOINTS_DUMP_PATH, RUZ_API_ENDPOINTS, rewrite=False)
+    recreate_dump(force=True)
