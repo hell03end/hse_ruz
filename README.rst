@@ -32,5 +32,5 @@ Note: add ruz api url throw `API_RUZ_URL` environment variable.
 
     from ruz import RUZ
     api = RUZ()
-    assert api.v == 2
-    assert api.get("buildings")
+    assert api.v == 1
+    assert api.schedule("mymail@edu.hse.ru")
