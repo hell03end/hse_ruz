@@ -23,9 +23,9 @@ class RUZ(object):
             Traceback (most recent call last):
                 ...
             PermissionError: Can't get base url!
-            >>> RUZ()._url2[-2]
+            >>> RUZ(strict_v1=False)._url2[-2]
             '2'
-            >>> RUZ(strict_v1=True)._url2 == RUZ()._url
+            >>> RUZ()._url2 == RUZ()._url
             True
         '''
         self._url = kwargs.pop('base_url', RUZ_API_URL)
@@ -50,9 +50,9 @@ class RUZ(object):
             Max API version
 
             >>> RUZ().v
-            2
-            >>> RUZ(strict_v1=True).v
             1
+            >>> RUZ(strict_v1=False).v
+            2
         '''
         return 2 if self._url2[-2] == "2" else 1
 
@@ -79,10 +79,17 @@ class RUZ(object):
         return request.urlopen(self._make_url(endpoint, data))
 
     def _verify_schema(self, endpoint: str, **params) -> None:
-        ''' Check params fit schema for certain endpoint '''
+        '''
+            Check params fit schema for certain endpoint
+
+            >>> RUZ()._verify_schema("")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong endpoint: ''
+        '''
         schema = self._schema.get(endpoint)
         if schema is None:
-            raise KeyError("Wrong endpoint: {}".format(endpoint))
+            raise KeyError("Wrong endpoint: '{}'".format(endpoint))
         for key, value in params.items():
             if key not in schema:
                 raise KeyError("Wrong param '{}' for {} endpoint".format(
@@ -94,7 +101,28 @@ class RUZ(object):
                 ))
 
     def _verify_email(self, email: str, receiver_type: int=3):
-        ''' Check email is valid for HSE '''
+        '''
+            Check email is valid for HSE
+
+            >>> RUZ()._verify_email("somemail@hse.com")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somemail@hse.com
+            >>> not RUZ()._verify_email("somemail@edu.hse.ru")
+            True
+            >>> RUZ()._verify_email("somem@il@edu.hse.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somem@il@edu.hse.ru
+            >>> RUZ()._verify_email("somemail@google.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email domain: google.ru
+            >>> RUZ()._verify_email("somemail@hse.ru", -1)
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong receiverType: -1
+        '''
         pattern = r"\b[a-zA-Z0-9\._-]{2,}@([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}\.ru\b"
         if not re.match(pattern, email):
             raise ValueError("Wrong email address: {}".format(email))
@@ -157,7 +185,14 @@ class RUZ(object):
         )
 
     def schedules(self, emails: Iterable, **params) -> map:
-        ''' Classes schedule for multiply students '''
+        '''
+            Classes schedule for multiply students
+
+            >>> RUZ().schedules(123)
+            Traceback (most recent call last):
+                ...
+            ValueError: Expect Iterable, got: <class 'int'>
+        '''
         if isinstance(emails, str):
             emails = [emails]
         elif not isinstance(emails, (set, list, tuple)):
