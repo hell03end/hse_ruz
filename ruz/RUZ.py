@@ -1,11 +1,12 @@
 import json
+from collections import Iterable
 from datetime import datetime as dt
 from datetime import timedelta as td
 from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
-from .utils import RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
+from .utils import REQUEST_SCHEMA, RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
 
 
 class RUZ(object):
@@ -31,10 +32,16 @@ class RUZ(object):
             raise PermissionError("Can't get base url!")
         self._endpoints = kwargs.pop('endpoints', RUZ_API_ENDPOINTS)
         self._url2 = self._url
+        self._schema = kwargs.pop('schema', REQUEST_SCHEMA)
         self._logger = Logger(str(self.__class__))
         if not strict_v1:
             self._url2 += r"v2/"
         super(RUZ, self).__init__()
+
+    @property
+    def schema(self) -> dict:
+        ''' Current request schema. '''
+        return self._schema
 
     @property
     def v(self) -> int:
@@ -64,8 +71,41 @@ class RUZ(object):
             self._logger.warning("v2 API unavailable: %s", excinfo)
         return request.urlopen(self._make_url(endpoint, data))
 
+    def _verify(self, endpoint: str, **params) -> None:
+        ''' Check params fit schema for certain endpoint '''
+        schema = self._schema.get(endpoint)
+        if not schema:
+            raise KeyError("Wrong endpoint: {}".format(endpoint))
+        for key, value in params.items():
+            if key not in schema:
+                raise KeyError("Wrong param '{}' for {} endpoint".format(
+                    key, endpoint
+                ))
+            if not isinstance(value, schema[key]):
+                raise ValueError("Expected {} for {} got: {}".format(
+                    schema[key], key, type(value)
+                ))
+
     def get(self, endpoint: str, **params) -> dict:
         ''' Return requested data in JSON '''
+        email = params.get('email')
+        if email:
+            if email[-7:] != "@hse.ru" and email[-11:] != "@edu.hse.ru":
+                raise ValueError("Wrong email domain: {}".format(email))
+            receiver = params.get('receiverType', 3)
+            if receiver == 1:
+                if email[-7:] != "@hse.ru":
+                    self._logger.warning("Wrong email domain for teacher: %s",
+                                         email)
+            elif receiver == 2:
+                raise ValueError("No email needed for receiverType = 2")
+            elif receiver == 3:
+                if email[-11:] != "@edu.hse.ru":
+                    self._logger.warning("Wrong email domain for student: %s",
+                                         email)
+            else:
+                raise ValueError("Wrong receiverType: {}".format(receiver))
+        self._verify(endpoint, **params)
         try:
             response = self._request(endpoint, data=params)
             return json.loads(response.read().decode('utf-8'))
@@ -75,7 +115,8 @@ class RUZ(object):
 
     def schedule(self, email: str=None,
                  from_date: str=str(dt.now()).replace('-', '.')[:10],
-                 to_date: str=str(dt.now() + td(days=6)).replace('-', '.')[:10],
+                 to_date: str=str(dt.now() + td(days=6)).replace('-',
+                                                                 '.')[:10],
                  **params) -> dict:
         '''
             Return classes schedule.
@@ -93,8 +134,14 @@ class RUZ(object):
             One of the followed required: lecturerOid, groupOid, auditoriumOid,
                 studentOid, email.
         '''
-        return self.get("schedule", fromDate=from_date, toDate=to_date,
-                        email=email, **params)
+        return self.get("schedule", fromDate=params.pop('fromDate', from_date),
+                        toDate=params.pop('toDate', to_date), email=email,
+                        **params)
+
+    def schedules(self, emails: Iterable, **params) -> map:
+        ''' Classes schedule for multiply students '''
+        return map(lambda email, params=params: self.schedule(email, **params),
+                   emails)
 
     @lru_cache(maxsize=16)
     def groups(self, **params) -> dict:
