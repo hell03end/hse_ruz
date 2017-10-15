@@ -63,7 +63,7 @@ class RUZ(object):
 
     def _make_url(self, endpoint: str, data: dict=None, v: int=1) -> str:
         ''' Creates full url for API requests '''
-        url = self._url if v == 1 else self._url2
+        url = self._url if v == 1 or self.v == 1 else self._url2
         if data:
             return "{}{}?{}".format(url, self._endpoints[endpoint],
                                     parse.urlencode(data))
@@ -122,6 +122,10 @@ class RUZ(object):
             Traceback (most recent call last):
                 ...
             ValueError: Wrong receiverType: -1
+            >>> RUZ()._verify_email("somemail@hse.ru", 2)
+            Traceback (most recent call last):
+                ...
+            ValueError: No email needed for receiverType: 2
         '''
         pattern = r"\b[a-zA-Z0-9\._-]{2,}@([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}\.ru\b"
         if not re.match(pattern, email):
