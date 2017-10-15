@@ -21,6 +21,12 @@ matrix:
   allow_failures:
   - python: "pypy3"
 
+install:
+  - pip install -r requirements.txt
+
+script:
+  - pytest -v tests.py
+
 notifications:
   email:
     recipients:
@@ -28,6 +34,3 @@ notifications:
     on_success: never
     on_failure: always
     on_start: never
-
-# command to run tests
-script: "python tests.py"

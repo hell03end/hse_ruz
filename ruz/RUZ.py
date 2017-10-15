@@ -1,11 +1,13 @@
 import json
+import re
+from collections import Iterable
 from datetime import datetime as dt
 from datetime import timedelta as td
 from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
-from .utils import RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
+from .utils import REQUEST_SCHEMA, RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
 
 
 class RUZ(object):
@@ -15,15 +17,15 @@ class RUZ(object):
         All methods are transformed from CamelCase to _ notation.
     '''
 
-    def __init__(self, strict_v1: bool=False, **kwargs):
+    def __init__(self, strict_v1: bool=True, **kwargs):
         '''
             >>> RUZ(base_url=None)
             Traceback (most recent call last):
                 ...
             PermissionError: Can't get base url!
-            >>> RUZ()._url2[-2]
+            >>> RUZ(strict_v1=False)._url2[-2]
             '2'
-            >>> RUZ(strict_v1=True)._url2 == RUZ()._url
+            >>> RUZ()._url2 == RUZ()._url
             True
         '''
         self._url = kwargs.pop('base_url', RUZ_API_URL)
@@ -31,10 +33,16 @@ class RUZ(object):
             raise PermissionError("Can't get base url!")
         self._endpoints = kwargs.pop('endpoints', RUZ_API_ENDPOINTS)
         self._url2 = self._url
+        self._schema = kwargs.pop('schema', REQUEST_SCHEMA)
         self._logger = Logger(str(self.__class__))
         if not strict_v1:
             self._url2 += r"v2/"
         super(RUZ, self).__init__()
+
+    @property
+    def schema(self) -> dict:
+        ''' Current request schema. '''
+        return self._schema
 
     @property
     def v(self) -> int:
@@ -42,15 +50,20 @@ class RUZ(object):
             Max API version
 
             >>> RUZ().v
-            2
-            >>> RUZ(strict_v1=True).v
             1
+            >>> RUZ(strict_v1=False).v
+            2
         '''
         return 2 if self._url2[-2] == "2" else 1
 
+    @property
+    def email_domains(self) -> tuple:
+        ''' Allowed email domains '''
+        return ("hse.ru", "edu.hse.ru")
+
     def _make_url(self, endpoint: str, data: dict=None, v: int=1) -> str:
         ''' Creates full url for API requests '''
-        url = self._url if v == 1 else self._url2
+        url = self._url if v == 1 or self.v == 1 else self._url2
         if data:
             return "{}{}?{}".format(url, self._endpoints[endpoint],
                                     parse.urlencode(data))
@@ -58,14 +71,87 @@ class RUZ(object):
 
     def _request(self, endpoint: str, data: dict=None) -> HTTPResponse:
         ''' Implements request to API with given params '''
-        try:
-            return request.urlopen(self._make_url(endpoint, data, v=2))
-        except error.HTTPError as excinfo:
-            self._logger.warning("v2 API unavailable: %s", excinfo)
+        if self.v == 2:
+            try:
+                return request.urlopen(self._make_url(endpoint, data, v=2))
+            except error.HTTPError as excinfo:
+                self._logger.warning("v2 API unavailable: %s", excinfo)
         return request.urlopen(self._make_url(endpoint, data))
 
-    def get(self, endpoint: str, **params) -> dict:
+    def _verify_schema(self, endpoint: str, **params) -> None:
+        '''
+            Check params fit schema for certain endpoint
+
+            >>> RUZ()._verify_schema("")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong endpoint: ''
+        '''
+        schema = self._schema.get(endpoint)
+        if schema is None:
+            raise KeyError("Wrong endpoint: '{}'".format(endpoint))
+        for key, value in params.items():
+            if key not in schema:
+                raise KeyError("Wrong param '{}' for {} endpoint".format(
+                    key, endpoint
+                ))
+            if not isinstance(value, schema[key]):
+                raise ValueError("Expected {} for {} got: {}".format(
+                    schema[key], key, type(value)
+                ))
+
+    def _verify_email(self, email: str, receiver_type: int=3):
+        '''
+            Check email is valid for HSE
+
+            >>> RUZ()._verify_email("somemail@hse.com")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somemail@hse.com
+            >>> not RUZ()._verify_email("somemail@edu.hse.ru")
+            True
+            >>> RUZ()._verify_email("somem@il@edu.hse.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somem@il@edu.hse.ru
+            >>> RUZ()._verify_email("somemail@google.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email domain: google.ru
+            >>> RUZ()._verify_email("somemail@hse.ru", -1)
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong receiverType: -1
+            >>> RUZ()._verify_email("somemail@hse.ru", 2)
+            Traceback (most recent call last):
+                ...
+            ValueError: No email needed for receiverType: 2
+        '''
+        pattern = r"\b[a-zA-Z0-9\._-]{2,}@([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}\.ru\b"
+        if not re.match(pattern, email):
+            raise ValueError("Wrong email address: {}".format(email))
+
+        domain = email.split('@')[-1]
+        if domain not in self.email_domains:
+            raise ValueError("Wrong email domain: {}".format(domain))
+
+        if receiver_type == 1:
+            if domain != "hse.ru":
+                self._logger.warning("Wrong domain for teacher: %s", domain)
+        elif receiver_type == 2:
+            raise ValueError("No email needed for receiverType: 2")
+        elif receiver_type == 3:
+            if domain != "edu.hse.ru":
+                self._logger.warning("Wrong domain for student: %s", domain)
+        else:
+            raise ValueError("Wrong receiverType: {}".format(receiver_type))
+
+    def _get(self, endpoint: str, **params) -> dict:
         ''' Return requested data in JSON '''
+        email = params.get('email')
+        if email:
+            self._verify_email(email, params.get('receiverType', 3))
+        self._verify_schema(endpoint, **params)
         try:
             response = self._request(endpoint, data=params)
             return json.loads(response.read().decode('utf-8'))
@@ -75,7 +161,8 @@ class RUZ(object):
 
     def schedule(self, email: str=None,
                  from_date: str=str(dt.now()).replace('-', '.')[:10],
-                 to_date: str=str(dt.now() + td(days=6)).replace('-', '.')[:10],
+                 to_date: str=str(dt.now() + td(days=6)).replace('-',
+                                                                 '.')[:10],
                  **params) -> dict:
         '''
             Return classes schedule.
@@ -93,8 +180,29 @@ class RUZ(object):
             One of the followed required: lecturerOid, groupOid, auditoriumOid,
                 studentOid, email.
         '''
-        return self.get("schedule", fromDate=from_date, toDate=to_date,
-                        email=email, **params)
+        return self._get(
+            "schedule",
+            fromDate=params.pop('fromDate', from_date),
+            toDate=params.pop('toDate', to_date),
+            email=email,
+            **params
+        )
+
+    def schedules(self, emails: Iterable, **params) -> map:
+        '''
+            Classes schedule for multiply students
+
+            >>> RUZ().schedules(123)
+            Traceback (most recent call last):
+                ...
+            ValueError: Expect Iterable, got: <class 'int'>
+        '''
+        if isinstance(emails, str):
+            emails = [emails]
+        elif not isinstance(emails, (set, list, tuple)):
+            raise ValueError("Expect Iterable, got: {}".format(type(emails)))
+        return map(lambda email, params=params: self.schedule(email, **params),
+                   emails)
 
     @lru_cache(maxsize=16)
     def groups(self, **params) -> dict:
@@ -104,7 +212,7 @@ class RUZ(object):
             :param facultyOid: int. Course ID.
             :param findText: str. Text to find.
         '''
-        return self.get("groups", **params)
+        return self._get("groups", **params)
 
     @lru_cache(maxsize=16)
     def staff_of_group(self, group_id: int, **params) -> dict:
@@ -114,7 +222,7 @@ class RUZ(object):
             :param group_id: int, required. Group' ID.
             :param findText: str. Text to find.
         '''
-        return self.get("staffOfGroup", groupOid=group_id, **params)
+        return self._get("staffOfGroup", groupOid=group_id, **params)
 
     @lru_cache(maxsize=16)
     def streams(self, **params) -> dict:
@@ -123,7 +231,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("streams", **params)
+        return self._get("streams", **params)
 
     @lru_cache(maxsize=16)
     def staff_of_streams(self, stream_id: int, **params) -> dict:
@@ -132,7 +240,7 @@ class RUZ(object):
 
             :param stream_id: int, required. Group' ID.
         '''
-        return self.get("staffOfStreams", streamOid=stream_id, **params)
+        return self._get("staffOfStreams", streamOid=stream_id, **params)
 
     @lru_cache(maxsize=16)
     def lecturers(self, **params) -> dict:
@@ -142,7 +250,7 @@ class RUZ(object):
             :param chairOid: int. ID of department.
             :param findText: str. Text to find.
         '''
-        return self.get("lecturers", **params)
+        return self._get("lecturers", **params)
 
     @lru_cache(maxsize=16)
     def auditoriums(self, **params) -> dict:
@@ -152,17 +260,17 @@ class RUZ(object):
             :param buildingOid: int. ID of building.
             :param findText: str. Text to find.
         '''
-        return self.get("auditoriums", **params)
+        return self._get("auditoriums", **params)
 
     @lru_cache(maxsize=1)
     def type_of_auditoriums(self) -> dict:
         ''' Return list of auditoriums' types. '''
-        return self.get("typeOfAuditoriums")
+        return self._get("typeOfAuditoriums")
 
     @lru_cache(maxsize=1)
     def kind_of_works(self) -> dict:
         ''' Return list of classes' types. '''
-        return self.get("kindOfWorks")
+        return self._get("kindOfWorks")
 
     @lru_cache(maxsize=16)
     def buildings(self, **params) -> dict:
@@ -171,7 +279,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("buildings", **params)
+        return self._get("buildings", **params)
 
     @lru_cache(maxsize=16)
     def faculties(self, **params) -> dict:
@@ -180,7 +288,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("faculties", **params)
+        return self._get("faculties", **params)
 
     @lru_cache(maxsize=16)
     def chairs(self, **params) -> dict:
@@ -190,7 +298,7 @@ class RUZ(object):
             :param facultyOid: int. ID of course (learning program).
             :param findText: str. Text to find.
         '''
-        return self.get("chairs", **params)
+        return self._get("chairs", **params)
 
     @lru_cache(maxsize=16)
     def sub_groups(self, **params) -> dict:
@@ -199,7 +307,7 @@ class RUZ(object):
 
             :param findText: str. Text to find.
         '''
-        return self.get("subGroups", **params)
+        return self._get("subGroups", **params)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 # Version History
 
+##### v0.2.0
+    * add schedules generator for fetching schedules for multiply emails
+    * add schemas for requests and responces
+    * add values checks for each endpoint
+    * improve stability
+
 ##### v0.1.0
     * fix bug with docstring
 
