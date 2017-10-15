@@ -80,7 +80,7 @@ class RUZ(object):
     def _verify_schema(self, endpoint: str, **params) -> None:
         ''' Check params fit schema for certain endpoint '''
         schema = self._schema.get(endpoint)
-        if not schema:
+        if schema is None:
             raise KeyError("Wrong endpoint: {}".format(endpoint))
         for key, value in params.items():
             if key not in schema:
@@ -147,9 +147,13 @@ class RUZ(object):
             One of the followed required: lecturerOid, groupOid, auditoriumOid,
                 studentOid, email.
         '''
-        return self._get("schedule", fromDate=params.pop('fromDate', from_date),
-                         toDate=params.pop('toDate', to_date), email=email,
-                         **params)
+        return self._get(
+            "schedule",
+            fromDate=params.pop('fromDate', from_date),
+            toDate=params.pop('toDate', to_date),
+            email=email,
+            **params
+        )
 
     def schedules(self, emails: Iterable, **params) -> map:
         ''' Classes schedule for multiply students '''
