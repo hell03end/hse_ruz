@@ -1,6 +1,7 @@
 import os
 
 from .logging import Logger, LEVELS
+from .schema import REQUEST_SCHEMA
 
 
 RUZ_API_URL = os.environ.get("API_RUZ_URL")
