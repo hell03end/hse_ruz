@@ -6,7 +6,11 @@ hse_ruz
 .. image:: https://badge.fury.io/py/hse_ruz.svg
     :target: https://badge.fury.io/py/hse_ruz
 
-Python wrapper for HSE RUZ API
+Python wrapper for HSE RUZ API.
+
+`What's new?`__
+
+__ https://github.com/hell03end/hse_ruz/wiki/Changelog
 
 
 Requirements
