@@ -26,8 +26,6 @@ Installation
 Usage
 -----
 
-Note: add ruz api url throw `API_RUZ_URL` environment variable.
-
 .. code-block:: python
 
     from ruz import RUZ
