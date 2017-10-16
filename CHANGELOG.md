@@ -1,5 +1,8 @@
 # Version History
 
+##### v0.2.1
+    * reveal RUZ API URL
+
 ##### v0.2.0
     * add schedules generator for fetching schedules for multiply emails
     * add schemas for requests and responces
