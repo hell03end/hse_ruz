@@ -7,7 +7,7 @@ from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
-from .utils import REQUEST_SCHEMA, RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
+from ruz.utils import REQUEST_SCHEMA, RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
 
 
 class RUZ(object):
