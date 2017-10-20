@@ -7,7 +7,8 @@ from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
-from ruz.utils import REQUEST_SCHEMA, RUZ_API_ENDPOINTS, RUZ_API_URL, Logger
+from ruz.utils import (EMAIL_PATTERN, REQUEST_SCHEMA, RUZ_API_ENDPOINTS,
+                       RUZ_API_URL, Logger)
 
 
 class RUZ(object):
@@ -100,9 +101,35 @@ class RUZ(object):
                     schema[key], key, type(value)
                 ))
 
-    def _verify_email(self, email: str, receiver_type: int=3):
+    def check_email(self, email: str, pattern: str=EMAIL_PATTERN) -> None:
         '''
-            Check email is valid for HSE
+            Check email is valid HSE corp. email.
+
+            >>> RUZ().check_email("somemail@hse.com")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somemail@hse.com
+            >>> not RUZ().check_email("somemail@edu.hse.ru")
+            True
+            >>> RUZ().check_email("somem@il@edu.hse.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email address: somem@il@edu.hse.ru
+            >>> RUZ().check_email("somemail@google.ru")
+            Traceback (most recent call last):
+                ...
+            ValueError: Wrong email domain: google.ru
+        '''
+        if not re.match(pattern, email):
+            raise ValueError("Wrong email address: {}".format(email))
+
+        domain = email.split('@')[-1]
+        if domain not in self.email_domains:
+            raise ValueError("Wrong email domain: {}".format(domain))
+
+    def _verify_email(self, email: str, receiver_type: int=3) -> None:
+        '''
+            Check email is valid for given receiver type (to use in API)
 
             >>> RUZ()._verify_email("somemail@hse.com")
             Traceback (most recent call last):
@@ -127,14 +154,9 @@ class RUZ(object):
                 ...
             ValueError: No email needed for receiverType: 2
         '''
-        pattern = r"\b[a-zA-Z0-9\._-]{2,}@([a-zA-Z]{2,}\.)?[a-zA-Z]{2,}\.ru\b"
-        if not re.match(pattern, email):
-            raise ValueError("Wrong email address: {}".format(email))
+        self.check_email(email)
 
         domain = email.split('@')[-1]
-        if domain not in self.email_domains:
-            raise ValueError("Wrong email domain: {}".format(domain))
-
         if receiver_type == 1:
             if domain != "hse.ru":
                 self._logger.warning("Wrong domain for teacher: %s", domain)
