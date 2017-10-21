@@ -11,8 +11,8 @@
 
 import os
 
-from .RUZ import RUZ
-from .utils import REQUEST_SCHEMA, RESPONSE_SCHEMA
+from ruz.RUZ import RUZ
+from ruz.utils import REQUEST_SCHEMA, RESPONSE_SCHEMA, EMAIL_DOMAINS
 
 __author__ = "hell03end"
 __version__ = (0, 2, 1)
