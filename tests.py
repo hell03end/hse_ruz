@@ -16,10 +16,6 @@ class TestRUZ:
         assert self.api.schema == REQUEST_SCHEMA
         assert self.api2.schema == REQUEST_SCHEMA
 
-    def test_email_domains(self):
-        assert "hse.ru" in self.api.email_domains
-        assert "edu.hse.ru" in self.api.email_domains
-
     def test__make_url(self):
         RUZ_URL2 = RUZ_URL + "v2/"
         for key, endpoint in RUZ_API_ENDPOINTS.items():
@@ -47,6 +43,17 @@ class TestRUZ:
                 assert excinfo
             assert not self.api._verify_schema(endpoint)
 
+    def test_check_email(self):
+        correct_emails = ("somemail@edu.hse.ru", "somemail@hse.ru")
+        incorrect_emails = ("somemail@hse.com", "somem@il@edu.hse.ru",
+                            "somemail@google.ru")
+        for email in incorrect_emails:
+            with pytest.raises(ValueError) as excinfo:
+                self.api.check_email(email)
+            assert excinfo
+        for email in correct_emails:
+            assert self.api.check_email(email) is None
+
     def test__verify_email(self):
         correct_emails = ("somemail@edu.hse.ru", "somemail@hse.ru")
         incorrect_emails = ("somemail@hse.com", "somem@il@edu.hse.ru",
@@ -56,7 +63,7 @@ class TestRUZ:
                 self.api._verify_email(email)
             assert excinfo
         for email in correct_emails:
-            assert not self.api._verify_email(email)
+            assert self.api._verify_email(email) is None
         with pytest.raises(ValueError) as excinfo:
             self.api._verify_email(correct_emails[0], receiver_type=-1)
         assert excinfo
