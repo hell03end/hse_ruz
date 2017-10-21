@@ -7,8 +7,8 @@ from functools import lru_cache
 from http.client import HTTPResponse
 from urllib import error, parse, request
 
-from ruz.utils import (EMAIL_PATTERN, REQUEST_SCHEMA, RUZ_API_ENDPOINTS,
-                       RUZ_API_URL, Logger)
+from ruz.utils import (EMAIL_DOMAINS, EMAIL_PATTERN, REQUEST_SCHEMA,
+                       RUZ_API_ENDPOINTS, RUZ_API_URL, Logger)
 
 
 class RUZ(object):
@@ -60,7 +60,7 @@ class RUZ(object):
     @property
     def email_domains(self) -> tuple:
         ''' Allowed email domains '''
-        return ("hse.ru", "edu.hse.ru")
+        return EMAIL_DOMAINS
 
     def _make_url(self, endpoint: str, data: dict=None, v: int=1) -> str:
         ''' Creates full url for API requests '''
