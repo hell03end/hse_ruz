@@ -57,11 +57,6 @@ class RUZ(object):
         '''
         return 2 if self._url2[-2] == "2" else 1
 
-    @property
-    def email_domains(self) -> tuple:
-        ''' Allowed email domains '''
-        return EMAIL_DOMAINS
-
     def _make_url(self, endpoint: str, data: dict=None, v: int=1) -> str:
         ''' Creates full url for API requests '''
         url = self._url if v == 1 or self.v == 1 else self._url2
@@ -101,7 +96,8 @@ class RUZ(object):
                     schema[key], key, type(value)
                 ))
 
-    def check_email(self, email: str, pattern: str=EMAIL_PATTERN) -> None:
+    @staticmethod
+    def check_email(email: str, pattern: str=EMAIL_PATTERN) -> None:
         '''
             Check email is valid HSE corp. email.
 
@@ -124,7 +120,7 @@ class RUZ(object):
             raise ValueError("Wrong email address: {}".format(email))
 
         domain = email.split('@')[-1]
-        if domain not in self.email_domains:
+        if domain not in EMAIL_DOMAINS:
             raise ValueError("Wrong email domain: {}".format(domain))
 
     def _verify_email(self, email: str, receiver_type: int=3) -> None:
@@ -154,7 +150,7 @@ class RUZ(object):
                 ...
             ValueError: No email needed for receiverType: 2
         '''
-        self.check_email(email)
+        RUZ.check_email(email)
 
         domain = email.split('@')[-1]
         if receiver_type == 1:
