@@ -25,7 +25,7 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - pytest -v tests.py
+  - pytest -v
 
 notifications:
   email:
