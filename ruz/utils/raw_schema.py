@@ -94,7 +94,7 @@ RESPONSE_SCHEMA = {
             'disciplineinplan': str,
             'disciplinetypeload': int,
             'endLesson': str,
-            'group': None,
+            'group': str(type(None)),
             'groupOid': int,
             'isBan': bool,
             'kindOfWork': str,
@@ -102,7 +102,7 @@ RESPONSE_SCHEMA = {
             'lecturerOid': int,
             'stream': str,
             'streamOid': int,
-            'subGroup': None,
+            'subGroup': (str, type(None)),
             'subGroupOid': int
         }
     ],
@@ -123,7 +123,7 @@ RESPONSE_SCHEMA = {
                 'disciplineinplan': str,
                 'disciplinetypeload': int,
                 'endLesson': str,
-                'group': None,
+                'group': str(type(None)),
                 'groupOid': int,
                 'isBan': bool,
                 'kindOfWork': str,
@@ -131,7 +131,7 @@ RESPONSE_SCHEMA = {
                 'lecturerOid': int,
                 'stream': str,
                 'streamOid': int,
-                'subGroup': None,
+                'subGroup': str(type(None)),
                 'subGroupOid': int
             }
         ],
@@ -209,7 +209,7 @@ RESPONSE_SCHEMA = {
     'kindOfWorks': [
         {
             'abbr': str,
-            'code': None,
+            'code': type(None),  # TODO: add correct type
             'complexity': int,
             'kindOfWorkOid': int,
             'name': str,
@@ -227,7 +227,7 @@ RESPONSE_SCHEMA = {
     'faculties': [
         {
             'abbr': str,
-            'code': None,
+            'code': type(None),
             'facultyOid': int,
             'institute': str,
             'name': str
