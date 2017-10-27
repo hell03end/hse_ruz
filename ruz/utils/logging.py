@@ -65,6 +65,7 @@ def log(func: Callable) -> Callable:
         result = func(*args, **kwargs)
         logger.debug("Exiting: %s", func.__name__)
         return result
+    wrapper.__doc__ = func.__doc__
     return wrapper
 
 

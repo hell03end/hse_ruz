@@ -28,6 +28,7 @@ def abs_none_safe(func: Callable) -> Callable:
                 param_dict[key] = value
         result = func(*params, **param_dict)
         return result
+    wrapper.__doc__ = func.__doc__
     return wrapper
 
 
@@ -51,4 +52,5 @@ def none_safe(func: Callable) -> Callable:
                 param_dict[key] = value
         result = func(*args, **param_dict)
         return result
+    wrapper.__doc__ = func.__doc__
     return wrapper
