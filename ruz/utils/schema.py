@@ -1,5 +1,9 @@
+# collection of API endpoints (and their aliases)
 RUZ_API_ENDPOINTS = {
     'schedule': "personLessons",
+    'lessons': "personLessons",
+    'person_lessons': "personLessons",
+    'personLessons': "personLessons",
     'groups': "groups",
     'staffOfGroup': "staffOfGroup",
     'staff_of_group': "staffOfGroup",
@@ -20,6 +24,7 @@ RUZ_API_ENDPOINTS = {
     'sub_groups': "subGroups"
 }
 
+# type rules to make request for API
 REQUEST_SCHEMA = {
     'schedule': {
         'from_date': str,
@@ -27,7 +32,7 @@ REQUEST_SCHEMA = {
         'to_date': str,
         'toDate': str,
         'receiverType': int,
-        'groupOid': int,
+        'groupOid': int,  # depreciated
         'lecturerOid': int,
         'auditoriumOid': int,
         'studentOid': int,
@@ -78,6 +83,7 @@ REQUEST_SCHEMA = {
     'subgroups': {'findText': str},
     'sub_groups': {'findText': str}
 }
+# type rules for correct response from API
 RESPONSE_SCHEMA = {
     'schedule': [
         {
@@ -94,7 +100,7 @@ RESPONSE_SCHEMA = {
             'disciplineinplan': str,
             'disciplinetypeload': int,
             'endLesson': str,
-            'group': str(type(None)),
+            'group': (str, type(None)),
             'groupOid': int,
             'isBan': bool,
             'kindOfWork': str,
@@ -123,7 +129,7 @@ RESPONSE_SCHEMA = {
                 'disciplineinplan': str,
                 'disciplinetypeload': int,
                 'endLesson': str,
-                'group': str(type(None)),
+                'group': (str, type(None)),
                 'groupOid': int,
                 'isBan': bool,
                 'kindOfWork': str,
@@ -131,7 +137,7 @@ RESPONSE_SCHEMA = {
                 'lecturerOid': int,
                 'stream': str,
                 'streamOid': int,
-                'subGroup': str(type(None)),
+                'subGroup': (str, type(None)),
                 'subGroupOid': int
             }
         ],
@@ -201,7 +207,7 @@ RESPONSE_SCHEMA = {
     'typeOfAuditoriums': [
         {
             'abbr': str,
-            'code': str,
+            'code': (str, type(None)),
             'name': str,
             'typeOfAuditoriumOid': int
         }
@@ -209,7 +215,7 @@ RESPONSE_SCHEMA = {
     'kindOfWorks': [
         {
             'abbr': str,
-            'code': type(None),  # TODO: add correct type
+            'code': (str, type(None)),
             'complexity': int,
             'kindOfWorkOid': int,
             'name': str,
@@ -219,7 +225,7 @@ RESPONSE_SCHEMA = {
     'buildings': [
         {
             'abbr': str,
-            'address': str,
+            'address': (str, type(None)),
             'buildingOid': int,
             'name': str
         }
@@ -227,7 +233,7 @@ RESPONSE_SCHEMA = {
     'faculties': [
         {
             'abbr': str,
-            'code': type(None),
+            'code': (str, type(None)),
             'facultyOid': int,
             'institute': str,
             'name': str
@@ -235,9 +241,9 @@ RESPONSE_SCHEMA = {
     ],
     'chairs': [
         {
-            'abbr': str,
+            'abbr': (str, type(None)),
             'chairOid': int,
-            'code': str,
+            'code': (str, type(None)),
             'faculty': str,
             'facultyOid': int,
             'name': str
