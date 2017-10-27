@@ -182,9 +182,8 @@ class RUZ(object):
             return {}
 
     def schedule(self, email: str=None,
-                 from_date: str=str(dt.now()).replace('-', '.')[:10],
-                 to_date: str=str(dt.now() + td(days=6)).replace('-',
-                                                                 '.')[:10],
+                 from_date: str=dt.now().strftime('%Y-%m-%d'),
+                 to_date: str=(dt.now() + td(days=6)).strftime('%Y-%m-%d'),
                  **params) -> dict:
         '''
             Return classes schedule.
