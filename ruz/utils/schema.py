@@ -26,7 +26,7 @@ RUZ_API_ENDPOINTS = {
 
 # type rules to make request for API
 REQUEST_SCHEMA = {
-    'schedule': {
+    'personLessons': {
         'from_date': str,
         'fromDate': str,
         'to_date': str,
@@ -47,17 +47,8 @@ REQUEST_SCHEMA = {
         'groupOid': int,
         'findText': str
     },
-    'staff_of_group': {
-        'group_id': int,
-        'groupOid': int,
-        'findText': str
-    },
     'streams': {'findText': str},
     'staffOfStreams': {
-        'streamOid': int,
-        'stream_id': int
-    },
-    'staff_of_streams': {
         'streamOid': int,
         'stream_id': int
     },
@@ -70,9 +61,7 @@ REQUEST_SCHEMA = {
         'findText': str
     },
     'typeOfAuditoriums': {},
-    'type_of_auditoriums': {},
     'kindOfWorks': {},
-    'kind_of_works': {},
     'buildings': {'findText': str},
     'faculties': {'findText': str},
     'chairs': {
@@ -80,8 +69,7 @@ REQUEST_SCHEMA = {
         'findText': str
     },
     'subGroups': {'findText': str},
-    'subgroups': {'findText': str},
-    'sub_groups': {'findText': str}
+    'subgroups': {'findText': str}
 }
 # type rules for correct response from API
 RESPONSE_SCHEMA = {
