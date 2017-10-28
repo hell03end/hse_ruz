@@ -1,4 +1,5 @@
 import logging
+import os
 from collections import Callable
 from functools import wraps
 
@@ -52,7 +53,7 @@ def log(func: Callable) -> Callable:
     """
     logger = Logger(
         name="{}::{}".format(func.__module__, func.__name__),
-        level=logging.DEBUG
+        level=os.environ.get("logging_level", logging.INFO)
     )
 
     @wraps(func)
