@@ -12,6 +12,8 @@ Python wrapper for HSE RUZ API.
 
 __ https://github.com/hell03end/hse_ruz/wiki/Changelog
 
+Feel free to contribute.
+
 
 Requirements
 ------------
@@ -38,3 +40,15 @@ Usage
     api = RUZ()
     assert api.v == 1
     assert api.person_lessons("mymail@edu.hse.ru")
+
+
+Contributing
+------------
+
+Please, use type annotations.
+
+.. code-block:: bash
+
+    git clone https://github.com/hell03end/hse_ruz.git
+    cd hse_ruz
+    pytest -v  # check requests schema is valid and etc.
