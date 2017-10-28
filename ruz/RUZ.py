@@ -435,7 +435,11 @@ class RUZ(object):
         if not isinstance(vals, (tuple, set, list)):
             raise ValueError("Expect Iterable or {}, got: {}".format(
                 allowed_types, type(vals)))
-        return map(lambda x: self.person_lessons(**{key: x}, **params), vals)
+
+        def func(val: dict, key: str=key, params: dict=params) -> list:
+            params.update({key: val})
+            return self.person_lessons(**params)
+        return map(func, vals)
 
     def schedules(self,
                   emails: Iterable=None,
@@ -528,6 +532,8 @@ class RUZ(object):
         if receiver_type is None and email is not None:
             if not RUZ.is_student(email):
                 receiver_type = 1
+        elif receiver_type is None and lecturer_id is not None:
+            receiver_type = 1
         elif receiver_type is None and auditorium_id is not None:
             receiver_type = 2
 

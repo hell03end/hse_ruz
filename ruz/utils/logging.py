@@ -1,6 +1,13 @@
 import logging
+import os
 from collections import Callable
 from functools import wraps
+
+
+LEVELS = {
+    "TEST": logging.DEBUG,
+    "PROD": logging.INFO
+}
 
 
 def Logger(name: str, level: int=logging.INFO, **kwargs) -> logging.RootLogger:
@@ -52,7 +59,7 @@ def log(func: Callable) -> Callable:
     """
     logger = Logger(
         name="{}::{}".format(func.__module__, func.__name__),
-        level=logging.DEBUG
+        level=LEVELS[os.environ.get("logging_level", "PROD")]
     )
 
     @wraps(func)
