@@ -9,7 +9,8 @@ from http.client import HTTPResponse
 from urllib import error, parse, request
 
 from ruz.utils import (EMAIL_DOMAINS, EMAIL_PATTERN, REQUEST_SCHEMA,
-                       RUZ_API_ENDPOINTS, RUZ_API_URL, Logger, log, none_safe)
+                       RUZ_API2_ENDPOINTS, RUZ_API2_URL, RUZ_API_ENDPOINTS,
+                       RUZ_API_URL, Logger, log, none_safe)
 
 
 class RUZ(object):
@@ -24,7 +25,7 @@ class RUZ(object):
         >>> api = RUZ()
     """
 
-    def __init__(self, strict_v1: bool=True, **kwargs):
+    def __init__(self, strict_v1: bool=False, **kwargs):
         """
             :param strict_v1 - force usage of api v1.
 
@@ -65,8 +66,12 @@ class RUZ(object):
             )
         self._logger = Logger(str(self.__class__))
         self._url2 = self._url
+        self._endpoints2 = self._endpoints
+        self._v = 1
         if not strict_v1:
-            self._url2 += r"v2/"
+            self._url2 = kwargs.pop('base_url', RUZ_API2_URL)
+            self._endpoints2 = kwargs.pop('endpoints', RUZ_API2_ENDPOINTS)
+            self._v = 2
         super(RUZ, self).__init__()
 
     @property
@@ -106,12 +111,12 @@ class RUZ(object):
 
             Usage
             -----
-            >>> RUZ().v
+            >>> RUZ(strict_v1=True).v
             1
             >>> RUZ(strict_v1=False).v
             2
         """
-        return 2 if self._url2[-2] == "2" else 1
+        return self._v
 
     @property
     def domains(self) -> tuple:
@@ -138,6 +143,20 @@ class RUZ(object):
             True
         """
         return deepcopy(self._endpoints)
+
+    @property
+    def endpoints2(self) -> dict:
+        """
+            Collection HSE API endpoints for API v2
+
+            Usage
+            -----
+            >>> isinstance(RUZ().endpoints2, dict)
+            True
+            >>> RUZ().endpoints2 is not RUZ().endpoints2
+            True
+        """
+        return deepcopy(self._endpoints2)
 
     @staticmethod
     def is_student(email: str) -> bool:
@@ -180,11 +199,14 @@ class RUZ(object):
             >>> RUZ()._make_url("schedule", data={'email': 123})
             http://92.242.58.221/ruzservice.svc/personLessons?email=123
         """
-        url = self._url if v == 1 or self.v == 1 else self._url2
+        url = self._url
+        endpoint = self._endpoints[endpoint]
+        if v != 1 and self.v != 1:
+            url = self._url2
+            endpoint = self._endpoints2[endpoint]
         if data:
-            return "{}{}?{}".format(url, self._endpoints[endpoint],
-                                    parse.urlencode(data))
-        return "{}{}".format(url, self._endpoints[endpoint])
+            return "{}{}?{}".format(url, endpoint, parse.urlencode(data))
+        return "{}{}".format(url, endpoint)
 
     @log
     def _request(self, endpoint: str, data: dict=None) -> HTTPResponse:
@@ -201,7 +223,7 @@ class RUZ(object):
                 ...
             urllib.error.HTTPError: HTTP Error 400: Bad Request
         """
-        if self.v == 2:
+        if self._v == 2:
             # api v2 may be unreachable for some API methods
             try:
                 return request.urlopen(self._make_url(endpoint, data, v=2))
@@ -239,7 +261,7 @@ class RUZ(object):
                 params.get('receiverType', 3),
                 params.pop('check_online', False)
             )
-        endpoint = self._endpoints[endpoint]
+        endpoint = self._endpoints[endpoint]  # it's ok to use only v1 here
         schema = self._schema.get(endpoint)
         if schema is None:
             raise KeyError("Wrong endpoint: '{}'".format(endpoint))

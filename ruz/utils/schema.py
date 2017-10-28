@@ -1,27 +1,33 @@
 # collection of API endpoints (and their aliases)
 RUZ_API_ENDPOINTS = {
-    'schedule': "personLessons",
-    'lessons': "personLessons",
-    'person_lessons': "personLessons",
-    'personLessons': "personLessons",
-    'groups': "groups",
-    'staffOfGroup': "staffOfGroup",
-    'staff_of_group': "staffOfGroup",
-    'streams': "streams",
-    'staffOfStreams': "staffOfStreams",
-    'staff_of_streams': "staffOfStreams",
-    'lecturers': "lecturers",
-    'auditoriums': "auditoriums",
-    'typeOfAuditoriums': "typeOfAuditoriums",
-    'type_of_auditoriums': "typeOfAuditoriums",
-    'kindOfWorks': "kindOfWorks",
-    'kind_of_works': "kindOfWorks",
-    'buildings': "buildings",
-    'faculties': "faculties",
-    'chairs': "chairs",
-    'subGroups': "subGroups",
-    'subgroups': "subGroups",
-    'sub_groups': "subGroups"
+    'schedule': r"personLessons",
+    'lessons': r"personLessons",
+    'person_lessons': r"personLessons",
+    'personLessons': r"personLessons",
+    'groups': r"groups",
+    'staffOfGroup': r"staffOfGroup",
+    'staff_of_group': r"staffOfGroup",
+    'streams': r"streams",
+    'staffOfStreams': r"staffOfStreams",
+    'staff_of_streams': r"staffOfStreams",
+    'lecturers': r"lecturers",
+    'auditoriums': r"auditoriums",
+    'typeOfAuditoriums': r"typeOfAuditoriums",
+    'type_of_auditoriums': r"typeOfAuditoriums",
+    'kindOfWorks': r"kindOfWorks",
+    'kind_of_works': r"kindOfWorks",
+    'buildings': r"buildings",
+    'faculties': r"faculties",
+    'chairs': r"chairs",
+    'subGroups': r"subGroups",
+    'subgroups': r"subGroups",
+    'sub_groups': r"subGroups"
+}
+RUZ_API2_ENDPOINTS = {
+    'schedule': r"timetable/lessons",
+    'lessons': r"timetable/lessons",
+    'person_lessons': r"timetable/lessons",
+    'personLessons': r"timetable/lessons"
 }
 
 # type rules to make request for API

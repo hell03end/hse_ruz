@@ -12,7 +12,7 @@ except ImportError:
 setup(
     name="hse_ruz",
     packages=packages,
-    version="1.0.1",
+    version="1.1.0",
     description="Python wrapper for HSE RUZ API",
     long_description=open(os.path.join(os.path.dirname(__file__),
                                        "README.rst")).read(),

@@ -3,6 +3,8 @@ from time import sleep
 
 import pytest
 from ruz import EMAIL_DOMAINS, REQUEST_SCHEMA, RUZ
+from ruz.utils import RUZ_API2_ENDPOINTS as RUZ_ENDPOINTS2
+from ruz.utils import RUZ_API2_URL as RUZ_URL2
 from ruz.utils import RUZ_API_ENDPOINTS as RUZ_ENDPOINTS
 from ruz.utils import RUZ_API_URL as RUZ_URL
 from ruz.utils.logging import Logger
@@ -101,11 +103,11 @@ class TestRUZ:
         assert excinfo
 
     def test__make_url(self):
-        RUZ_URL2 = RUZ_URL + "v2/"
         for key, endpoint in RUZ_ENDPOINTS.items():
             assert self.api._make_url(key) == RUZ_URL + endpoint
             assert self.api._make_url(key, v=2) == RUZ_URL + endpoint
             assert self.api2._make_url(key, v=1) == RUZ_URL + endpoint
+        for key, endpoint in RUZ_ENDPOINTS2.items():
             assert self.api2._make_url(key, v=2) == RUZ_URL2 + endpoint
         with pytest.raises(KeyError):
             self.api._make_url("")
