@@ -19,7 +19,7 @@ class TestRUZ:
 
     def _test_simple_endpoint(self, response: object,
                               resp_type: type=list) -> None:
-        assert response
+        assert response is not None
         assert isinstance(response, resp_type)
         del response
 
@@ -231,6 +231,10 @@ class TestRUZ:
         with pytest.raises(ValueError) as excinfo:
             self.api.person_lessons(incorrect_email, check_online=True)
         assert excinfo
+        for lecturer_id in (24577, 19000, 24187, 23867, 22349):
+            self._test_simple_endpoint(
+                self.api.person_lessons(lecturer_id=lecturer_id, safe=False)
+            )
 
     def test_groups(self):
         self._test_endpoint_with_kwargs((
