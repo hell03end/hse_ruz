@@ -25,6 +25,8 @@ Installation
 .. code-block:: bash
 
     pip install hse_ruz
+    # or update
+    pip install -U hse_ruz
 
 
 Usage
@@ -35,4 +37,4 @@ Usage
     from ruz import RUZ
     api = RUZ()
     assert api.v == 1
-    assert api.schedule("mymail@edu.hse.ru")
+    assert api.person_lessons("mymail@edu.hse.ru")
