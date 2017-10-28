@@ -256,24 +256,26 @@ class RUZ(object):
     @staticmethod
     def check_email(email: str, pattern: str=EMAIL_PATTERN) -> None:
         """
-            Check email is valid HSE corp. email. Throw an exception if not.
+            Check email is valid HSE corp. email
+
+            Throws an exception
 
             :param email, required - email address to check.
             :param pattern - pattern to check against.
 
             Usage
             -----
-            >>> RUZ().check_email("somemail@hse.com")
+            >>> RUZ.check_email("somemail@hse.com")
             Traceback (most recent call last):
                 ...
             ValueError: Wrong email address: somemail@hse.com
-            >>> not RUZ().check_email("somemail@edu.hse.ru")
+            >>> not RUZ.check_email("somemail@edu.hse.ru")
             True
-            >>> RUZ().check_email("somem@il@edu.hse.ru")
+            >>> RUZ.check_email("somem@il@edu.hse.ru")
             Traceback (most recent call last):
                 ...
             ValueError: Wrong email address: somem@il@edu.hse.ru
-            >>> RUZ().check_email("somemail@google.ru")
+            >>> RUZ.check_email("somemail@google.ru")
             Traceback (most recent call last):
                 ...
             ValueError: Wrong email domain: google.ru
