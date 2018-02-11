@@ -1,4 +1,6 @@
-# collection of API endpoints (and their aliases)
+from ruz.utils import RUZ_API_V
+
+# collection of API endpoints and their aliases
 RUZ_API_ENDPOINTS = {
     'schedule': r"personLessons",
     'lessons': r"personLessons",
@@ -23,12 +25,13 @@ RUZ_API_ENDPOINTS = {
     'subgroups': r"subGroups",
     'sub_groups': r"subGroups"
 }
-RUZ_API2_ENDPOINTS = {
-    'schedule': r"timetable/lessons",
-    'lessons': r"timetable/lessons",
-    'person_lessons': r"timetable/lessons",
-    'personLessons': r"timetable/lessons"
-}
+if RUZ_API_V == 3:
+    RUZ_API_ENDPOINTS = {
+        'schedule': r"timetable/lessons",
+        'lessons': r"timetable/lessons",
+        'person_lessons': r"timetable/lessons",
+        'personLessons': r"timetable/lessons"
+    }
 
 # type rules to make request for API
 REQUEST_SCHEMA = {

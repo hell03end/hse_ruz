@@ -12,13 +12,11 @@ Python wrapper for HSE RUZ API.
 
 __ https://github.com/hell03end/hse_ruz/wiki/Changelog
 
-Feel free to contribute.
-
 
 Requirements
 ------------
 
-* Python Python 3.3+ or PyPy3
+* Python >= 3.5 or latest PyPy3
 
 
 Installation
@@ -26,8 +24,6 @@ Installation
 
 .. code-block:: bash
 
-    pip install hse_ruz
-    # or update
     pip install -U hse_ruz
 
 
@@ -36,16 +32,12 @@ Usage
 
 .. code-block:: python
 
-    from ruz import RUZ
-    api = RUZ()
-    assert api.v == 1
-    assert api.person_lessons("mymail@edu.hse.ru")
+    import ruz
+    schedule = ruz.person_lessons("mymail@edu.hse.ru")
 
 
 Contributing
 ------------
-
-Please, use type annotations.
 
 .. code-block:: bash
 
