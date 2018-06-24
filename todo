@@ -1,0 +1,3 @@
+* remove environment variables usage (`os.environ` in code)
+* test request schema changes (Gid, etc.)
+* test all API endpoints
