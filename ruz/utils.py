@@ -11,7 +11,7 @@ from ruz.logging import log
 from ruz.schema import API_ENDPOINTS, API_URL, REQUEST_SCHEMA
 
 CHECK_EMAIL_ONLINE = bool(os.environ.get("CHECK_EMAIL_ONLINE", False))
-USE_NONE_SAFE_VALUES = bool(os.environ.get("USE_NONE_SAFE_VALUES", True))
+
 HSE_EMAIL_REGEX = re.compile(r"^[a-z0-9\._-]{3,}@(edu\.)?hse\.ru$")
 
 
@@ -167,20 +167,18 @@ def make_url(endpoint: str, **params) -> str:
 @log
 def get(endpoint: str,
         encoding: str="utf-8",
-        return_none_safe: bool=USE_NONE_SAFE_VALUES,
         **params) -> (list, dict, None):
     """
-        Return requested data in JSON
+        Return requested data in JSON (empty list on fallback)
 
         Check request has correct schema.
 
         :param endpoint - endpoint for request.
         :param encoding - encoding for received data.
-        :param return_none_safe - return empty list on fallback.
         :param params - requested params
     """
     if not is_valid_schema(endpoint, **params):
-        return [] if return_none_safe else None
+        return []
 
     url = make_url(endpoint, **params)
     try:
@@ -188,4 +186,4 @@ def get(endpoint: str,
         return json.loads(response.read().decode(encoding))
     except (error.HTTPError, error.URLError) as err:
         logging.debug("Can't get '%s'.\n%s", url, err)
-    return [] if return_none_safe else None
+    return []

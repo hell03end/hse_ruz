@@ -82,25 +82,16 @@ def test_is_valid_schema():
 def test_get():
     for endpoint in API_ENDPOINTS.keys():
         if endpoint == "schedule":
-            none_safe = ruz.utils.get(
+            response = ruz.utils.get(
                 endpoint,
                 email=INTRUSTED_EMAILS['other'],
                 return_none_safe=True,
                 check_email_online=False
             )
-            usual = ruz.utils.get(
-                endpoint,
-                email=INTRUSTED_EMAILS['other'],
-                return_none_safe=False,
-                check_email_online=False
-            )
         else:
-            none_safe = ruz.utils.get(endpoint, tmp=123, return_none_safe=True)
-            usual = ruz.utils.get(endpoint, tmp=123, return_none_safe=False)
-        assert not none_safe
-        assert isinstance(none_safe, list)
-        assert not usual
-        assert usual is None
+            response = ruz.utils.get(endpoint, tmp=123, return_none_safe=True)
+        assert not response
+        assert isinstance(response, list)
 
 
 def test_schedules():
