@@ -1,7 +1,17 @@
-from ruz.utils import RUZ_API_V
+import os
+
+API_URL = os.environ.get("HSE_RUZ_API_URL",
+                         r"http://92.242.58.221/ruzservice.svc/")
+
+# detect RUZ API version from possible RUZ API URLs
+API_V = 1
+if API_URL == r"http://92.242.58.221/ruzservice.svc/v2/":
+    API_V = 2
+elif API_URL == r"https://www.hse.ru/api/":
+    API_V = 3
 
 # collection of API endpoints and their aliases
-RUZ_API_ENDPOINTS = {
+API_ENDPOINTS = {
     'schedule': r"personLessons",
     'lessons': r"personLessons",
     'person_lessons': r"personLessons",
@@ -25,8 +35,8 @@ RUZ_API_ENDPOINTS = {
     'subgroups': r"subGroups",
     'sub_groups': r"subGroups"
 }
-if RUZ_API_V == 3:
-    RUZ_API_ENDPOINTS = {
+if API_V == 3:
+    API_ENDPOINTS = {
         'schedule': r"timetable/lessons",
         'lessons': r"timetable/lessons",
         'person_lessons': r"timetable/lessons",
@@ -86,6 +96,7 @@ RESPONSE_SCHEMA = {
         {
             'auditorium': str,
             'auditoriumOid': int,
+            'auditoriumGid': int,
             'beginLesson': str,
             'building': str,
             'date': str,
@@ -99,14 +110,18 @@ RESPONSE_SCHEMA = {
             'endLesson': str,
             'group': (str, type(None)),
             'groupOid': int,
+            'groupGid': int,
             'isBan': bool,
             'kindOfWork': str,
             'lecturer': str,
             'lecturerOid': int,
+            'lecturerGid': int,
             'stream': str,
             'streamOid': int,
+            'streamGid': int,
             'subGroup': (str, type(None)),
-            'subGroupOid': int
+            'subGroupOid': int,
+            'subGroupGid': int
         }
     ],
     'schedule2': {
@@ -115,6 +130,7 @@ RESPONSE_SCHEMA = {
             {
                 'auditorium': str,
                 'auditoriumOid': int,
+                'auditoriumGid': int,
                 'beginLesson': str,
                 'building': str,
                 'date': str,
@@ -128,14 +144,18 @@ RESPONSE_SCHEMA = {
                 'endLesson': str,
                 'group': (str, type(None)),
                 'groupOid': int,
+                'groupGid': int,
                 'isBan': bool,
                 'kindOfWork': str,
                 'lecturer': str,
                 'lecturerOid': int,
+                'lecturerGid': int,
                 'stream': str,
                 'streamOid': int,
+                'streamGid': int,
                 'subGroup': (str, type(None)),
-                'subGroupOid': int
+                'subGroupOid': int,
+                'subGroupGid': int
             }
         ],
         'StatusCode': {
@@ -146,21 +166,29 @@ RESPONSE_SCHEMA = {
     'groups': [
         {
             'chairOid': int,
+            'chairGid': int,
             'course': int,
             'faculty': str,
             'facultyOid': int,
+            'facultyGid': int,
             'formOfEducation': str,
             'groupOid': int,
+            'groupGid': int,
             'kindEducation': int,
             'number': str,
-            'speciality': str
+            'speciality': str,
+            'FormOfEducationGid': int,
+            'FormOfEducationOid': int,
+            'SpecialityGid': int,
+            'SpecialityOid': int
         }
     ],
     'staffOfGroup': [
         {
             'fio': str,
             'shortFIO': str,
-            'studentOid': int
+            'studentOid': int,
+            'studentGid': int
         }
     ],
     'streams': [
@@ -169,36 +197,47 @@ RESPONSE_SCHEMA = {
             'course': str,
             'faculty': str,
             'facultyOid': int,
+            'facultyGid': int,
             'formOfEducation': str,
             'name': str,
             'streamOid': int,
-            'yearOfEducation': int
+            'streamGid': int,
+            'yearOfEducation': int,
+            'FormOfEducationGid': int,
+            'FormOfEducationOid': int
         }
     ],
     'staffOfStreams': [
         {
             "GroupNumber": str,
             "GroupOid": int,
+            "GroupGid": int,
             "SubgroupName": str,
-            "SubgroupOid": int
+            "SubgroupOid": int,
+            "SubgroupGid": int
         }
     ],
     'lecturers': [
         {
             'chair': str,
             'chairOid': int,
+            'chairGid': int,
             'fio': str,
             'lecturerOid': int,
+            'lecturerGid': int,
             'shortFIO': str
         }
     ],
     'auditoriums': [
         {
             'auditoriumOid': int,
+            'auditoriumGid': int,
             'building': str,
             'buildingOid': int,
+            'buildingGid': int,
             'number': str,
-            'typeOfAuditorium': str
+            'typeOfAuditorium': str,
+            'TypeOfAuditoriumOid': int
         }
     ],
     'typeOfAuditoriums': [
@@ -206,7 +245,9 @@ RESPONSE_SCHEMA = {
             'abbr': str,
             'code': (str, type(None)),
             'name': str,
-            'typeOfAuditoriumOid': int
+            'typeOfAuditoriumOid': int,
+            'hideincapacity': int,
+            'TypeOfAuditoriumGid': int
         }
     ],
     'kindOfWorks': [
@@ -215,6 +256,7 @@ RESPONSE_SCHEMA = {
             'code': (str, type(None)),
             'complexity': int,
             'kindOfWorkOid': int,
+            'kindOfWorkGid': int,
             'name': str,
             'unit': str
         }
@@ -224,6 +266,7 @@ RESPONSE_SCHEMA = {
             'abbr': str,
             'address': (str, type(None)),
             'buildingOid': int,
+            'buildingGid': int,
             'name': str
         }
     ],
@@ -232,6 +275,7 @@ RESPONSE_SCHEMA = {
             'abbr': str,
             'code': (str, type(None)),
             'facultyOid': int,
+            'facultyGid': int,
             'institute': str,
             'name': str
         }
@@ -240,9 +284,11 @@ RESPONSE_SCHEMA = {
         {
             'abbr': (str, type(None)),
             'chairOid': int,
+            'chairGid': int,
             'code': (str, type(None)),
             'faculty': str,
             'facultyOid': int,
+            'facultyGid': int,
             'name': str
         }
     ],
@@ -251,8 +297,10 @@ RESPONSE_SCHEMA = {
             'abbr': str,
             'group': str,
             'groupOid': int,
+            'groupGid': int,
             'name': str,
-            'subGroupOid': int
+            'subGroupOid': int,
+            'subgroupGid': int
         }
     ]
 }

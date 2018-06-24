@@ -1,188 +1,9 @@
-import json
-import re
+import logging
 from collections import Callable, Iterable
-from datetime import datetime, timedelta
 from functools import lru_cache
-from urllib import error, parse, request
 
-from ruz.logging import log, logging
-from ruz.schema import REQUEST_SCHEMA, RUZ_API_ENDPOINTS
-from ruz.utils import (CHECK_EMAIL_ONLINE, RUZ_API_URL, RUZ_API_V,
-                       USE_NONE_SAFE_VALUES, none_safe)
+from ruz.utils import get, get_formated_date, is_student
 
-
-# ===== Common methods =====
-
-def is_student(email: str) -> bool or None:
-    """
-        Check email belongs to student
-
-        :param email, required - valid HSE email addres or domain.
-
-        Stutent's domain:   @edu.hse.ru
-        HSE stuff' domain:  @hse.ru
-    """
-    email_domain = email.lower().split("@")[-1]
-
-    if email_domain == "edu.hse.ru":
-        return True
-    elif email_domain == "hse.ru":
-        return False
-
-    logging.error("Wrong HSE email domain: '%s'", email_domain)
-
-
-def is_hse_email(email: str) -> bool:
-    """
-        Check email is valid HSE corp. email
-
-        :param email, required - email address to check.
-    """
-    if re.fullmatch(r"^[a-z0-9\._-]{3,}@(edu\.)?hse\.ru$", email.lower()):
-        return True
-    logging.debug("Incorrect HSE email '%s'.", email)
-    return False
-
-
-def get_formated_date(day_bias: int or float=0) -> str:
-    """
-        Return date in RUZ API compatible format
-
-        :param day_bias - number of day from now.
-    """
-    return (datetime.now() + timedelta(
-        days=float(day_bias)
-    )).strftime("%Y.%m.%d")
-
-
-@log()
-def is_valid_hse_email(email: str) -> bool:
-    """
-        Check email is valid via API endpoint call (schedule)
-
-        :param email - email address to check (for schedules only).
-    """
-    @none_safe()
-    def request_schedule_api(**params) -> list or dict:
-        return request.urlopen(make_url(
-            "schedule",
-            email=email,
-            fromDate=get_formated_date(),
-            toDate=get_formated_date(1),
-            **params
-        ))
-
-    email = email.strip().lower()
-    if not is_hse_email(email):
-        return False
-
-    try:
-        response = request_schedule_api(
-            receiverType=1 if not is_student(email) else None
-        )
-        del response
-    except (error.HTTPError, error.URLError) as err:
-        logging.debug("Email '%s' wasn't verified.\n%s", email, err)
-        return False
-    return True
-
-
-# ===== Special methods =====
-
-@log()
-def is_valid_schema(endpoint: str,
-                    check_email_online: bool=CHECK_EMAIL_ONLINE,
-                    **params) -> bool:
-    """
-        Check params fit schema for certain endpoint
-
-        :param endpoint - endpoint for request.
-        :param check_email_online - use is_valid_hse_email.
-        :param params - schema params.
-    """
-
-    if (endpoint == "schedule" and "lecturerOid" not in params and
-            "studentOid" not in params and "email" not in params and
-            "auditoriumOid" not in params):
-        logging.debug("One of the followed required: lecturer_id, "
-                      "auditorium_id, student_id, email for "
-                      "schedule endpoint.")
-        return False
-
-    if params.get('email') is not None:
-        email = params['email']
-        if not is_hse_email(email):
-            del email
-            return False
-        elif check_email_online and not is_valid_hse_email(email):
-            logging.warning("'%s' is not verified by API call.", email)
-        del email
-
-    endpoint = RUZ_API_ENDPOINTS.get(endpoint)
-    if endpoint is None:
-        logging.warning("Can't find endpoint: '%s'.", endpoint)
-        del endpoint
-        return False
-
-    schema = REQUEST_SCHEMA[endpoint]
-    for key, value in params.items():
-        if key not in schema:
-            logging.warning("Can't find '%s' schema param: '%s'",
-                            endpoint, key)
-            del schema, endpoint
-            return False
-        if not isinstance(value, schema[key]):
-            logging.warning("Expected {} for '{}'::'{}' got: {}",
-                            schema[key], endpoint, key, type(value))
-            del schema, endpoint
-            return False
-    del schema, endpoint
-    return True
-
-
-@log()
-def make_url(endpoint: str, **params) -> str:
-    """
-        Creates URL for API requests
-
-        :param endpoint - endpoint for request.
-        :param params - request params.
-    """
-    url = "".join((RUZ_API_URL, RUZ_API_ENDPOINTS[endpoint]))
-    if params:
-        return "?".join((url, parse.urlencode(params)))
-    return url
-
-
-@none_safe()
-@log()
-def get(endpoint: str,
-        encoding: str="utf-8",
-        return_none_safe: bool=USE_NONE_SAFE_VALUES,
-        **params) -> (list, dict, None):
-    """
-        Return requested data in JSON
-
-        Check request has correct schema.
-
-        :param endpoint - endpoint for request.
-        :param encoding - encoding for received data.
-        :param return_none_safe - return empty list on fallback.
-        :param params - requested params
-    """
-    if not is_valid_schema(endpoint, **params):
-        return [] if return_none_safe else None
-
-    url = make_url(endpoint, **params)
-    try:
-        response = request.urlopen(url)
-        return json.loads(response.read().decode(encoding))
-    except (error.HTTPError, error.URLError) as err:
-        logging.warning("Can't get '%s'.\n%s", url, err)
-    return [] if return_none_safe else None
-
-
-# ===== API methods =====
 
 def schedules(emails: Iterable=None,
               lecturer_ids: Iterable=None,
@@ -385,8 +206,6 @@ def sub_groups(reset_cache: bool=False) -> list:
     return get("subGroups")
 
 
-# ===== Additional methods =====
-
 def find_by_str(subject: str or Callable,
                 query: str,
                 by: str="name",
@@ -440,4 +259,5 @@ def find_by_str(subject: str or Callable,
         raise NotImplementedError(subject.__name__)
 
     query = query.strip().lower()
-    return [el for el in subject(**params) if query in el[by].lower().strip()]
+    return [el for el in subject(**params)
+            if query in (el[by].lower().strip() if el[by] else "")]

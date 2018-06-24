@@ -1,12 +1,20 @@
-""" Test that current response schema is still actual """
+"""
+    Test that current response schema is still actual.
 
-from tests import TRUSTED_EMAILS, TRUSTED_GROUP_ID, logging
+    This tests are very long because use real requests to RUZ API
+    and should be run only in special cases.
+"""
+
+from time import time
 
 import ruz
 from ruz.schema import RESPONSE_SCHEMA
+from tests import TRUSTED_EMAILS, TRUSTED_GROUP_ID, logging
 
 
 def _test_schema(schema, response):
+    start_t = time()
+
     if isinstance(schema, type):
         assert isinstance(response, schema)
     else:
@@ -33,8 +41,8 @@ def _test_schema(schema, response):
         for key, value in response.items():
             _test_schema(schema[key], value)
 
+    logging.info("Test run takes: %s seconds", time() - start_t)
 
-# ===== API methods =====
 
 def test_schedule():
     logging.warning("Trusted emails may be deactivated in few years!")
