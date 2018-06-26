@@ -8,6 +8,8 @@ hse_ruz
 
 Python wrapper for HSE RUZ API.
 
+**Versions under `2.1.0` are depreciated due to HSE RUZ API schema changes.**
+
 `What's new?`__
 
 __ https://github.com/hell03end/hse_ruz/wiki/Changelog
