@@ -8,7 +8,7 @@ hse_ruz
 
 Python wrapper for HSE RUZ API.
 
-**Versions under `2.1.0` are depreciated due to HSE RUZ API schema changes.**
+**Versions under 2.1.0 are depreciated due to HSE RUZ API schema changes.**
 
 `What's new?`__
 
@@ -39,7 +39,7 @@ Usage
 
 Module configuration performs throw setting environment variables:
 
-* `HSE_RUZ_ENABLE_LOGGING` - to enable verbose logging (`@log`)
+* `HSE_RUZ_ENABLE_VERBOSE_LOGGING` - to enable verbose logging (`@log`)
 * `HSE_RUZ_API_URL` - url to RUZ API, possible values (not all endpoints supported for 2, 3):
 
     1. `http://92.242.58.221/ruzservice.svc` - default
