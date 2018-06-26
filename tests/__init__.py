@@ -13,16 +13,4 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-__version__ = (2, 0, 1)
-
-# ===== Fixtures =====
-TRUSTED_EMAILS = {
-    'student': r"dapchelkin@edu.hse.ru",
-    'lecturer': r"aromanov@hse.ru"
-}
-INTRUSTED_EMAILS = {
-    'other': r"hell03end@outlook.com",
-    'hse': r"hell03end@hse.ru"
-}
-TRUSTED_GROUP_ID = 7699
-TRUSTED_LECTURER_ID = 6232
+__version__ = (2, 1, 2)
