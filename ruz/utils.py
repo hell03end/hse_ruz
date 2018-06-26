@@ -2,17 +2,35 @@ import json
 import logging
 import os
 import re
-from collections import Callable
+from collections import Callable, Iterable
 from datetime import datetime, timedelta
 from functools import wraps
 from urllib import error, parse, request
 
-from ruz.logging import log
 from ruz.schema import API_ENDPOINTS, API_URL, REQUEST_SCHEMA
 
 CHECK_EMAIL_ONLINE = bool(os.environ.get("CHECK_EMAIL_ONLINE", False))
+ENABLE_LOGGING = os.environ.get("HSE_RUZ_ENABLE_VERBOSE_LOGGING", True)
 
 HSE_EMAIL_REGEX = re.compile(r"^[a-z0-9\._-]{3,}@(edu\.)?hse\.ru$")
+
+
+def log(func: Callable) -> Callable:
+    if not ENABLE_LOGGING:
+        return func
+
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> object:
+        func_name = func.__name__
+        logging.debug("[%s]\tENTER", func_name)
+        for arg in args:
+            logging.debug("[%s]\tARG\t%s", func_name, arg)
+        for key, value in kwargs.items():
+            logging.debug("[%s]\tKWARG\t%s=%s", func_name, key, value)
+        result = func(*args, **kwargs)
+        logging.debug("[%s]\tEXIT", func_name)
+        return result
+    return wrapper
 
 
 def none_safe(func: Callable) -> Callable:
@@ -56,15 +74,14 @@ def is_hse_email(email: str) -> bool:
     return False
 
 
-def get_formated_date(day_bias: int or float=0) -> str:
+def get_formated_date(day_bias: int or float=0, date: datetime=None) -> str:
     """
         Return date in RUZ API compatible format
 
         :param day_bias - number of day from now.
     """
-    return (datetime.now() + timedelta(
-        days=float(day_bias)
-    )).strftime("%Y.%m.%d")
+    date = datetime.now() if date is None else date
+    return (date + timedelta(days=float(day_bias))).strftime("%Y.%m.%d")
 
 
 @log
@@ -99,7 +116,6 @@ def is_valid_hse_email(email: str) -> bool:
     return True
 
 
-@log
 def is_valid_schema(endpoint: str,
                     check_email_online: bool=CHECK_EMAIL_ONLINE,
                     **params) -> bool:
@@ -149,7 +165,6 @@ def is_valid_schema(endpoint: str,
     return True
 
 
-@log
 def make_url(endpoint: str, **params) -> str:
     """
         Creates URL for API requests
@@ -187,3 +202,35 @@ def get(endpoint: str,
     except (error.HTTPError, error.URLError) as err:
         logging.debug("Can't get '%s'.\n%s", url, err)
     return []
+
+
+def split_schedule_by_days(schedule: Iterable) -> list:
+    """
+        Split schedule lessons to days by date.
+
+        :param schedule - response from person_lessons endpoint.
+
+        Response schema: {
+            'dayOfWeek': int,
+            'date': str,
+            'count': int,
+            'lessons': list
+        }
+    """
+    last_date = None
+    days_split = []
+    for lesson in schedule:
+        if lesson['date'] != last_date:
+            if last_date is not None and days_split:
+                days_split[-1]['count'] = len(days_split[-1]['lessons'])
+            days_split.append({
+                'dayOfWeek': lesson['dayOfWeek'],
+                'date': lesson['date'],
+                'lessons': []
+            })
+            last_date = lesson['date']
+        days_split[-1]['lessons'].append(lesson)
+    # [minor] TODO: remove code duplication
+    if last_date is not None and days_split:
+        days_split[-1]['count'] = len(days_split[-1]['lessons'])
+    return days_split
