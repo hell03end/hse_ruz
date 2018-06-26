@@ -9,7 +9,8 @@ from time import time
 
 import ruz
 from ruz.schema import RESPONSE_SCHEMA
-from tests import TRUSTED_EMAILS, TRUSTED_GROUP_ID, logging
+from tests import logging
+from tests.fixtures import TRUSTED_EMAILS, TRUSTED_GROUP_ID
 
 
 def _test_schema(schema, response):
